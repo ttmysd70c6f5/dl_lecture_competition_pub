@@ -3,9 +3,11 @@
 ## 環境構築
 
 ```bash
-conda create -n dlbasics python=3.10
+# conda create -n dlbasics python=3.10
+conda create -n dlbasics python=3.11
 conda activate dlbasics
 pip install -r requirements.txt
+conda install pytorch torchvision torchaudio pytorch-cuda=12.1 -c pytorch -c nvidia # Added by TY to avoid the CUDA error
 ```
 
 ## ベースラインモデルを動かす
