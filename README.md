@@ -17,7 +17,11 @@ conda install pytorch torchvision torchaudio pytorch-cuda=12.1 -c pytorch -c nvi
 ```bash
 python main.py
 
+# 複数の条件を同時に回したいとき
+python main.py --multirun batch_size=32,64,128
+
 # オンラインで結果の可視化（wandbのアカウントが必要）
+wandb login a07f1216701144c48413e9ddb54e103a0fcc9b97
 python main.py use_wandb=True
 ```
 
@@ -26,6 +30,18 @@ python main.py use_wandb=True
   - `model_best.pt`はvalidation top-10 accuracyで評価
 
 - 訓練時に読み込む`config.yaml`ファイルは`train.py`，`run()`の`@hydra.main`デコレータで指定しています．新しいyamlファイルを作った際は書き換えてください．
+またはcommand lineでの実行時に個別のパラメータを指定可能。
+```bash
+python main.py batch_size=128 
+```
+指定可能なconfig:
+batch_size: 128 # Default 128
+epochs: 80 # Default 80
+lr: 0.001 # Default 0.001
+device: cuda:0 # Default 0
+num_workers: 4 # Default 4
+seed: 1234 # Default 1234
+use_wandb: False # Default False
 
 - ベースラインは非常に単純な手法のため，改善の余地が多くあります（セクション「考えられる工夫の例」を参考）．そのため，**Omnicampusにおいてベースラインのtest accuracy=1.637%を超えた提出のみ，修了要件として認めることとします．**
 

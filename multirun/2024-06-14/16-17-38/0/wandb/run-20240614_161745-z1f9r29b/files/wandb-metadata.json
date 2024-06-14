@@ -1,0 +1,55 @@
+{
+    "os": "Windows-10-10.0.19045-SP0",
+    "python": "3.10.14",
+    "heartbeatAt": "2024-06-14T23:17:51.688205",
+    "startedAt": "2024-06-14T23:17:45.255397",
+    "docker": null,
+    "cuda": null,
+    "args": [
+        "--multirun",
+        "use_wandb=True",
+        "num_workers=8",
+        "batch_size=32,64,128"
+    ],
+    "state": "running",
+    "program": "K:\\My Drive\\Colab Notebooks\\DLBasics2023_colab\\4_final\\dl_lecture_competition_pub\\main.py",
+    "codePath": "main.py",
+    "git": {
+        "remote": "https://github.com/ttmysd70c6f5/dl_lecture_competition_pub.git",
+        "commit": "9750c93111026b54da3560c52c1555cedf94ec89"
+    },
+    "email": "61156941+ttmysd70c6f5@users.noreply.github.com",
+    "root": "K:/My Drive/Colab Notebooks/DLBasics2023_colab/4_final/dl_lecture_competition_pub",
+    "host": "DESKTOP-K6MJ9RA",
+    "username": "Tatsumi",
+    "executable": "C:\\Users\\Tatsumi\\anaconda3\\envs\\dlbasics\\python.exe",
+    "cpu_count": 24,
+    "cpu_count_logical": 32,
+    "cpu_freq": {
+        "current": 3000.0,
+        "min": 0.0,
+        "max": 3000.0
+    },
+    "cpu_freq_per_core": [
+        {
+            "current": 3000.0,
+            "min": 0.0,
+            "max": 3000.0
+        }
+    ],
+    "disk": {
+        "total": 2048.0,
+        "used": 152.51400756835938
+    },
+    "gpu": "NVIDIA GeForce RTX 4090",
+    "gpu_count": 1,
+    "gpu_devices": [
+        {
+            "name": "NVIDIA GeForce RTX 4090",
+            "memory_total": 25757220864
+        }
+    ],
+    "memory": {
+        "total": 127.77267456054688
+    }
+}
