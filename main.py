@@ -4,7 +4,7 @@ import torch
 import torch.nn.functional as F
 from torchmetrics import Accuracy
 import hydra
-from omegaconf import DictConfig
+from omegaconf import DictConfig # Operate configs as a dict
 import wandb
 from termcolor import cprint
 from tqdm import tqdm
@@ -12,9 +12,11 @@ from tqdm import tqdm
 from src.datasets import ThingsMEGDataset
 from src.models import BasicConvClassifier
 from src.utils import set_seed
+from src.preprocess import CAR
 
-
+# Configuration using hydra
 @hydra.main(version_base=None, config_path="configs", config_name="config")
+
 def run(args: DictConfig):
     set_seed(args.seed)
     logdir = hydra.core.hydra_config.HydraConfig.get().runtime.output_dir
@@ -26,12 +28,18 @@ def run(args: DictConfig):
     #    Dataloader
     # ------------------
     loader_args = {"batch_size": args.batch_size, "num_workers": args.num_workers}
-    
-    train_set = ThingsMEGDataset("train", args.data_dir)
+
+    # Load train data with shuffling for minibatch learning
+    train_set = ThingsMEGDataset("train", args.data_dir) # [n, ch, seq]
+    train_set = CAR(train_set) # preprocess
     train_loader = torch.utils.data.DataLoader(train_set, shuffle=True, **loader_args)
-    val_set = ThingsMEGDataset("val", args.data_dir)
+    # Load valid data
+    val_set = ThingsMEGDataset("val", args.data_dir) # [n, ch, seq]
+    val_set = CAR(val_set) # preprocess
     val_loader = torch.utils.data.DataLoader(val_set, shuffle=False, **loader_args)
-    test_set = ThingsMEGDataset("test", args.data_dir)
+    # Load test data
+    test_set = ThingsMEGDataset("test", args.data_dir) # [n, ch, seq]
+    test_set = CAR(test_set) # preprocess
     test_loader = torch.utils.data.DataLoader(
         test_set, shuffle=False, batch_size=args.batch_size, num_workers=args.num_workers
     )

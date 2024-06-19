@@ -6,6 +6,15 @@ from termcolor import cprint
 
 
 class ThingsMEGDataset(torch.utils.data.Dataset):
+    # Train = ThingsMEGDataset("train",data_dir)
+    # 
+    # Methods:
+    # Train.split: data type
+    # Train.num_classes: number of classes
+    # Train.X: data [n, ch, seq]
+    # Train.subject_idxs: subject index for each sample
+    # Train.y: true labels
+    
     def __init__(self, split: str, data_dir: str = "data") -> None:
         super().__init__()
         
@@ -15,6 +24,8 @@ class ThingsMEGDataset(torch.utils.data.Dataset):
         
         self.X = torch.load(os.path.join(data_dir, f"{split}_X.pt"))
         self.subject_idxs = torch.load(os.path.join(data_dir, f"{split}_subject_idxs.pt"))
+
+        self.CAR = False # CAR preprocessing
         
         if split in ["train", "val"]:
             self.y = torch.load(os.path.join(data_dir, f"{split}_y.pt"))

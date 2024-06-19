@@ -7,7 +7,9 @@
 conda create -n dlbasics python=3.11
 conda activate dlbasics
 pip install -r requirements.txt
-conda install pytorch torchvision torchaudio pytorch-cuda=12.1 -c pytorch -c nvidia # Added by TY to avoid the CUDA error
+# Added by TY to avoid the CUDA error
+conda install pytorch torchvision torchaudio pytorch-cuda=12.1 -c pytorch -c nvidia
+conda install -c conda-forge jupyterlab
 ```
 
 ## ベースラインモデルを動かす
