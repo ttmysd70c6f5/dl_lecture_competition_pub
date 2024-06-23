@@ -9,10 +9,12 @@ import wandb
 from termcolor import cprint
 from tqdm import tqdm
 
+from torcheeg import transforms
+
 from src.datasets import ThingsMEGDataset
-from src.models import BasicConvClassifier
+from src.models import DefossezClassifier, BasicConvClassifier, Classifier2, ConvClassifier3
 from src.utils import set_seed
-from src.preprocess import CAR
+from src.preprocess import ToNDarray, CAR, extract_timepoint, ReshapeTensor
 
 # Configuration using hydra
 @hydra.main(version_base=None, config_path="configs", config_name="config")
@@ -31,15 +33,44 @@ def run(args: DictConfig):
 
     # Load train data with shuffling for minibatch learning
     train_set = ThingsMEGDataset("train", args.data_dir) # [n, ch, seq]
-    train_set = CAR(train_set) # preprocess
+    train_set.transform = transforms.Compose([
+        ToNDarray(),
+        transforms.BandSignal(sampling_rate=200),
+        ReshapeTensor((-1,281)),
+        transforms.ToTensor(),
+        extract_timepoint(95,141), # 75-300
+        transforms.RandomMask(ratio=0.75, p=0.75),
+    #     transforms.MeanStdNormalize(axis=-1),
+    #     transforms.ToTensor()
+    ])
     train_loader = torch.utils.data.DataLoader(train_set, shuffle=True, **loader_args)
+    
     # Load valid data
     val_set = ThingsMEGDataset("val", args.data_dir) # [n, ch, seq]
-    val_set = CAR(val_set) # preprocess
+    val_set.transform = transforms.Compose([
+        ToNDarray(),
+        transforms.BandSignal(sampling_rate=200),
+        ReshapeTensor((-1,281)),
+        transforms.ToTensor(),
+        extract_timepoint(95,141), # 75-300
+        # transforms.RandomMask(ratio=0.75, p=0.75),
+    #     transforms.MeanStdNormalize(axis=-1),
+    #     transforms.ToTensor()
+    ])
     val_loader = torch.utils.data.DataLoader(val_set, shuffle=False, **loader_args)
+    
     # Load test data
     test_set = ThingsMEGDataset("test", args.data_dir) # [n, ch, seq]
-    test_set = CAR(test_set) # preprocess
+    test_set.transform = transforms.Compose([
+        ToNDarray(),
+        transforms.BandSignal(sampling_rate=200),
+        ReshapeTensor((-1,281)),
+        transforms.ToTensor(),
+        extract_timepoint(95,141), # 75-300
+        # transforms.RandomMask(ratio=0.5, p=0.5),
+    #     transforms.MeanStdNormalize(axis=-1),
+    #     transforms.ToTensor()
+    ])
     test_loader = torch.utils.data.DataLoader(
         test_set, shuffle=False, batch_size=args.batch_size, num_workers=args.num_workers
     )
@@ -47,8 +78,20 @@ def run(args: DictConfig):
     # ------------------
     #       Model
     # ------------------
-    model = BasicConvClassifier(
-        train_set.num_classes, train_set.seq_len, train_set.num_channels
+    # model = DefossezClassifier(
+    #     train_set.num_classes, train_set.seq_len, train_set.num_channels
+    # ).to(args.device)
+    
+    # model = BasicConvClassifier(
+    #     train_set.num_classes, train_set.seq_len, train_set.num_channels
+    # ).to(args.device)
+    
+    # model = Classifier2(
+    #     train_set.num_classes, train_set.seq_len, train_set.num_channels
+    # ).to(args.device)
+    
+    model = ConvClassifier3(
+        train_set.num_classes, train_set.seq_len, train_set.num_channels*4, hid_dim = 512, hid_dim2 = 128,
     ).to(args.device)
 
     # ------------------
@@ -71,9 +114,9 @@ def run(args: DictConfig):
         
         model.train()
         for X, y, subject_idxs in tqdm(train_loader, desc="Train"):
-            X, y = X.to(args.device), y.to(args.device)
+            X, y, subject_idxs = X.to(args.device), y.to(args.device), subject_idxs.to(args.device)
 
-            y_pred = model(X)
+            y_pred = model(X, subject_idxs)
             
             loss = F.cross_entropy(y_pred, y)
             train_loss.append(loss.item())
@@ -87,10 +130,10 @@ def run(args: DictConfig):
 
         model.eval()
         for X, y, subject_idxs in tqdm(val_loader, desc="Validation"):
-            X, y = X.to(args.device), y.to(args.device)
+            X, y, subject_idxs = X.to(args.device), y.to(args.device), subject_idxs.to(args.device)
             
             with torch.no_grad():
-                y_pred = model(X)
+                y_pred = model(X, subject_idxs)
             
             val_loss.append(F.cross_entropy(y_pred, y).item())
             val_acc.append(accuracy(y_pred, y).item())
@@ -114,7 +157,8 @@ def run(args: DictConfig):
     preds = [] 
     model.eval()
     for X, subject_idxs in tqdm(test_loader, desc="Validation"):        
-        preds.append(model(X.to(args.device)).detach().cpu())
+        X, subject_idxs = X.to(args.device), subject_idxs.to(args.device)
+        preds.append(model(X, subject_idxs).detach().cpu())
         
     preds = torch.cat(preds, dim=0).numpy()
     np.save(os.path.join(logdir, "submission"), preds)

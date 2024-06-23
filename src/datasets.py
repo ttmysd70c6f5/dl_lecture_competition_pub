@@ -15,7 +15,7 @@ class ThingsMEGDataset(torch.utils.data.Dataset):
     # Train.subject_idxs: subject index for each sample
     # Train.y: true labels
     
-    def __init__(self, split: str, data_dir: str = "data") -> None:
+    def __init__(self, split: str, data_dir: str = "data", trans = None) -> None:
         super().__init__()
         
         assert split in ["train", "val", "test"], f"Invalid split: {split}"
@@ -24,8 +24,8 @@ class ThingsMEGDataset(torch.utils.data.Dataset):
         
         self.X = torch.load(os.path.join(data_dir, f"{split}_X.pt"))
         self.subject_idxs = torch.load(os.path.join(data_dir, f"{split}_subject_idxs.pt"))
-
-        self.CAR = False # CAR preprocessing
+        
+        self.transform = trans
         
         if split in ["train", "val"]:
             self.y = torch.load(os.path.join(data_dir, f"{split}_y.pt"))
@@ -35,8 +35,12 @@ class ThingsMEGDataset(torch.utils.data.Dataset):
         return len(self.X)
 
     def __getitem__(self, i):
+        x = self.X[i]
+        if self.transform:
+            x = self.transform(eeg=x)['eeg']
+            
         if hasattr(self, "y"):
-            return self.X[i], self.y[i], self.subject_idxs[i]
+            return x, self.y[i], self.subject_idxs[i]
         else:
             return self.X[i], self.subject_idxs[i]
         

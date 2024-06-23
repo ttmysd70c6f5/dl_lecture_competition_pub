@@ -3,6 +3,7 @@ data/*
 Images
 
 outputs/
+multirun/
 preprocess.py
 eval_omnicampus.py
 .github/
